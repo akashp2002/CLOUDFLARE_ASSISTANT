@@ -1,0 +1,24 @@
+# Secrets -- never commit this
+backend/.env
+
+# Python virtual environment
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+backend/__pycache__/
+
+# Generated data (large, regeneratable from source -- optional to ignore depending on your repo strategy)
+backend/data/embeddings/
+qdrant_storage/
+
+# Node / React
+frontend/node_modules/
+frontend/dist/
+
+# OS/editor junk
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store

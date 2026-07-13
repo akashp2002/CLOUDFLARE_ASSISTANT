@@ -1,0 +1,24 @@
+# CPU-only backend image. Model inference (BGE-M3 embeddings, cross-encoder
+# reranking) runs on CPU inside the container -- slower than the GPU setup
+# used during development, but far simpler to deploy and works on any machine
+# without needing NVIDIA Container Toolkit / GPU passthrough.
+
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# System deps needed by some ML packages (sentencepiece, tokenizers) to build/run correctly
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+EXPOSE 8000
+
+# --host 0.0.0.0 is required so the server is reachable from outside the
+# container (default 127.0.0.1 would only accept connections from inside it)
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]

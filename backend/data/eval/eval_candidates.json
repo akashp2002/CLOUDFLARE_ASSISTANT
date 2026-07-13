@@ -1,0 +1,474 @@
+[
+  {
+    "question": "Who reported the security problem with Cloudflare's edge servers?",
+    "ground_truth_answer": "Tavis Ormandy from Google\u2019s Project Zero",
+    "source_doc_id": "incident-report-on-memory-leak-caused-by-cloudflare-parser-bug",
+    "source_title": "Incident report on memory leak caused by Cloudflare parser bug",
+    "source_url": "https://blog.cloudflare.com/incident-report-on-memory-leak-caused-by-cloudflare-parser-bug/",
+    "reviewed": true
+  },
+  {
+    "question": "What was the duration between receiving the problem report and the initial mitigation?",
+    "ground_truth_answer": "47 minutes",
+    "source_doc_id": "incident-report-on-memory-leak-caused-by-cloudflare-parser-bug",
+    "source_title": "Incident report on memory leak caused by Cloudflare parser bug",
+    "source_url": "https://blog.cloudflare.com/incident-report-on-memory-leak-caused-by-cloudflare-parser-bug/",
+    "reviewed": true
+  },
+  {
+    "question": "What percentage of HTTP requests through Cloudflare potentially resulted in memory leakage during the greatest period of impact?",
+    "ground_truth_answer": "0.00003%",
+    "source_doc_id": "incident-report-on-memory-leak-caused-by-cloudflare-parser-bug",
+    "source_title": "Incident report on memory leak caused by Cloudflare parser bug",
+    "source_url": "https://blog.cloudflare.com/incident-report-on-memory-leak-caused-by-cloudflare-parser-bug/",
+    "reviewed": true
+  },
+  {
+    "question": "On which dates did Cloudflare experience global outages that the Code Orange effort aimed to prevent in the future?",
+    "ground_truth_answer": "November 18, 2025, and December 5, 2025",
+    "source_doc_id": "code-orange-fail-small-complete",
+    "source_title": "Code Orange: Fail Small is complete. The result is a stronger Cloudflare network",
+    "source_url": "https://blog.cloudflare.com/code-orange-fail-small-complete/",
+    "reviewed": true
+  },
+  {
+    "question": "What is the name of the new internal component built by Cloudflare to bring health-mediated deployment to configuration changes?",
+    "ground_truth_answer": "Snapstone",
+    "source_doc_id": "code-orange-fail-small-complete",
+    "source_title": "Code Orange: Fail Small is complete. The result is a stronger Cloudflare network",
+    "source_url": "https://blog.cloudflare.com/code-orange-fail-small-complete/",
+    "reviewed": true
+  },
+  {
+    "question": "How does the Workers runtime system handle changes now, in terms of segmenting services for different cohorts of traffic?",
+    "ground_truth_answer": "Changes are deployed to segments based on customer cohorts, starting with free customers first",
+    "source_doc_id": "code-orange-fail-small-complete",
+    "source_title": "Code Orange: Fail Small is complete. The result is a stronger Cloudflare network",
+    "source_url": "https://blog.cloudflare.com/code-orange-fail-small-complete/",
+    "reviewed": true
+  },
+  {
+    "question": "What was the duration of the route leak incident on January 22, 2026?",
+    "ground_truth_answer": "25 minutes",
+    "source_doc_id": "route-leak-incident-january-22-2026",
+    "source_title": "Route leak incident on January 22, 2026",
+    "source_url": "https://blog.cloudflare.com/route-leak-incident-january-22-2026/",
+    "reviewed": true
+  },
+  {
+    "question": "At what time did the automation run on a single Miami edge-router, resulting in unexpected advertisements to BGP transit providers and peers?",
+    "ground_truth_answer": "2026-01-22 20:25 UTC",
+    "source_doc_id": "route-leak-incident-january-22-2026",
+    "source_title": "Route leak incident on January 22, 2026",
+    "source_url": "https://blog.cloudflare.com/route-leak-incident-january-22-2026/",
+    "reviewed": true
+  },
+  {
+    "question": "What type of traffic was affected by the route leak incident?",
+    "ground_truth_answer": "IPv6 traffic",
+    "source_doc_id": "route-leak-incident-january-22-2026",
+    "source_title": "Route leak incident on January 22, 2026",
+    "source_url": "https://blog.cloudflare.com/route-leak-incident-january-22-2026/",
+    "reviewed": true
+  },
+  {
+    "question": "On what date did Cloudflare suffer a significant service outage due to a failure in the underlying storage infrastructure used by Workers KV?",
+    "ground_truth_answer": "June 12, 2025",
+    "source_doc_id": "rearchitecting-workers-kv-for-redundancy",
+    "source_title": "Redesigning Workers KV for increased availability and faster performance",
+    "source_url": "https://blog.cloudflare.com/rearchitecting-workers-kv-for-redundancy/",
+    "reviewed": true
+  },
+  {
+    "question": "In what year was Workers KV initially launched?",
+    "ground_truth_answer": "2018",
+    "source_doc_id": "rearchitecting-workers-kv-for-redundancy",
+    "source_title": "Redesigning Workers KV for increased availability and faster performance",
+    "source_url": "https://blog.cloudflare.com/rearchitecting-workers-kv-for-redundancy/",
+    "reviewed": true
+  },
+  {
+    "question": "How long did the outage caused by the third-party cloud provider's global outage last on June 12, 2025?",
+    "ground_truth_answer": "over two hours",
+    "source_doc_id": "rearchitecting-workers-kv-for-redundancy",
+    "source_title": "Redesigning Workers KV for increased availability and faster performance",
+    "source_url": "https://blog.cloudflare.com/rearchitecting-workers-kv-for-redundancy/",
+    "reviewed": true
+  },
+  {
+    "question": "At what time was this post updated in Pacific time?",
+    "ground_truth_answer": "11:45 a.m.",
+    "source_doc_id": "serverless-matrix-homeserver-workers",
+    "source_title": "Building a serverless, post-quantum Matrix homeserver",
+    "source_url": "https://blog.cloudflare.com/serverless-matrix-homeserver-workers/",
+    "reviewed": true
+  },
+  {
+    "question": "In what month and year did Cloudflare deploy post-quantum hybrid key agreement across all TLS 1.3 connections?",
+    "ground_truth_answer": "October 2022",
+    "source_doc_id": "serverless-matrix-homeserver-workers",
+    "source_title": "Building a serverless, post-quantum Matrix homeserver",
+    "source_url": "https://blog.cloudflare.com/serverless-matrix-homeserver-workers/",
+    "reviewed": true
+  },
+  {
+    "question": "How many locations worldwide do Cloudflare Workers run in?",
+    "ground_truth_answer": "300+",
+    "source_doc_id": "serverless-matrix-homeserver-workers",
+    "source_title": "Building a serverless, post-quantum Matrix homeserver",
+    "source_url": "https://blog.cloudflare.com/serverless-matrix-homeserver-workers/",
+    "reviewed": true
+  },
+  {
+    "question": "In what year did Cloudflare introduce Workers?",
+    "ground_truth_answer": "2017",
+    "source_doc_id": "workers-cache",
+    "source_title": "Your Worker can now have its own cache in front of it",
+    "source_url": "https://blog.cloudflare.com/workers-cache/",
+    "reviewed": true
+  },
+  {
+    "question": "What is the compatibility date specified in the example Wrangler config?",
+    "ground_truth_answer": "2026-05-01",
+    "source_doc_id": "workers-cache",
+    "source_title": "Your Worker can now have its own cache in front of it",
+    "source_url": "https://blog.cloudflare.com/workers-cache/",
+    "reviewed": true
+  },
+  {
+    "question": "What is the value of max-age in the example Cache-Control header?",
+    "ground_truth_answer": "300",
+    "source_doc_id": "workers-cache",
+    "source_title": "Your Worker can now have its own cache in front of it",
+    "source_url": "https://blog.cloudflare.com/workers-cache/",
+    "reviewed": true
+  },
+  {
+    "question": "How many weeks did the team spend chasing the bug in the hyper library?",
+    "ground_truth_answer": "six",
+    "source_doc_id": "hyper-bug",
+    "source_title": "How we found a bug in the hyper HTTP library",
+    "source_url": "https://blog.cloudflare.com/hyper-bug/",
+    "reviewed": true
+  },
+  {
+    "question": "In what year did the team rearchitect the Images binding to provide a more direct connection between the Workers runtime and the Images service?",
+    "ground_truth_answer": "2025",
+    "source_doc_id": "hyper-bug",
+    "source_title": "How we found a bug in the hyper HTTP library",
+    "source_url": "https://blog.cloudflare.com/hyper-bug/",
+    "reviewed": true
+  },
+  {
+    "question": "How many lines of code did it take to fix the bug in the hyper library?",
+    "ground_truth_answer": "four",
+    "source_doc_id": "hyper-bug",
+    "source_title": "How we found a bug in the hyper HTTP library",
+    "source_url": "https://blog.cloudflare.com/hyper-bug/",
+    "reviewed": true
+  },
+  {
+    "question": "What is the name of the pattern that pairs an operation with its compensation logic?",
+    "ground_truth_answer": "saga pattern",
+    "source_doc_id": "rollbacks-for-workflows",
+    "source_title": "How we built saga rollbacks for Cloudflare Workflows",
+    "source_url": "https://blog.cloudflare.com/rollbacks-for-workflows/",
+    "reviewed": true
+  },
+  {
+    "question": "In what order do rollback handlers execute if any step fails?",
+    "ground_truth_answer": "reverse step-start order",
+    "source_doc_id": "rollbacks-for-workflows",
+    "source_title": "How we built saga rollbacks for Cloudflare Workflows",
+    "source_url": "https://blog.cloudflare.com/rollbacks-for-workflows/",
+    "reviewed": true
+  },
+  {
+    "question": "What is required for rollback functions to be, similar to regular Workflow steps?",
+    "ground_truth_answer": "idempotent",
+    "source_doc_id": "rollbacks-for-workflows",
+    "source_title": "How we built saga rollbacks for Cloudflare Workflows",
+    "source_url": "https://blog.cloudflare.com/rollbacks-for-workflows/",
+    "reviewed": true
+  },
+  {
+    "question": "How many lines of code was the initial 'security-audit' skill?",
+    "ground_truth_answer": "450",
+    "source_doc_id": "build-your-own-vulnerability-harness",
+    "source_title": "Build your own vulnerability harness",
+    "source_url": "https://blog.cloudflare.com/build-your-own-vulnerability-harness/",
+    "reviewed": true
+  },
+  {
+    "question": "What percentage of bugs did a single run of the skill find compared to multiple runs?",
+    "ground_truth_answer": "about half",
+    "source_doc_id": "build-your-own-vulnerability-harness",
+    "source_title": "Build your own vulnerability harness",
+    "source_url": "https://blog.cloudflare.com/build-your-own-vulnerability-harness/",
+    "reviewed": true
+  },
+  {
+    "question": "How many phases did the initial 'security-audit' skill run in one session?",
+    "ground_truth_answer": "7",
+    "source_doc_id": "build-your-own-vulnerability-harness",
+    "source_title": "Build your own vulnerability harness",
+    "source_url": "https://blog.cloudflare.com/build-your-own-vulnerability-harness/",
+    "reviewed": true
+  },
+  {
+    "question": "What was the initial scanning throughput of Security Insights in scans per second?",
+    "ground_truth_answer": "10",
+    "source_doc_id": "scaling-security-scans",
+    "source_title": "Scaling Security Insights: how we achieved a 10x increase in global scanning capacity",
+    "source_url": "https://blog.cloudflare.com/scaling-security-scans/",
+    "reviewed": true
+  },
+  {
+    "question": "What was the target scanning throughput of Security Insights in scans per second after the increase?",
+    "ground_truth_answer": "100",
+    "source_doc_id": "scaling-security-scans",
+    "source_title": "Scaling Security Insights: how we achieved a 10x increase in global scanning capacity",
+    "source_url": "https://blog.cloudflare.com/scaling-security-scans/",
+    "reviewed": true
+  },
+  {
+    "question": "How many round trips to the database were made for a maximum observed size of insights in a single API call before optimization?",
+    "ground_truth_answer": "500,000",
+    "source_doc_id": "scaling-security-scans",
+    "source_title": "Scaling Security Insights: how we achieved a 10x increase in global scanning capacity",
+    "source_url": "https://blog.cloudflare.com/scaling-security-scans/",
+    "reviewed": true
+  },
+  {
+    "question": "On what date was the 'Copy Fail' Linux kernel local privilege escalation vulnerability publicly disclosed?",
+    "ground_truth_answer": "April 29, 2026",
+    "source_doc_id": "copy-fail-linux-vulnerability-mitigation",
+    "source_title": "How Cloudflare responded to the \u201cCopy Fail\u201d Linux vulnerability",
+    "source_url": "https://blog.cloudflare.com/copy-fail-linux-vulnerability-mitigation/",
+    "reviewed": true
+  },
+  {
+    "question": "How many cities are Cloudflare's datacenters located across?",
+    "ground_truth_answer": "330",
+    "source_doc_id": "copy-fail-linux-vulnerability-mitigation",
+    "source_title": "How Cloudflare responded to the \u201cCopy Fail\u201d Linux vulnerability",
+    "source_url": "https://blog.cloudflare.com/copy-fail-linux-vulnerability-mitigation/",
+    "reviewed": true
+  },
+  {
+    "question": "What is the CVE number for the 'Copy Fail' vulnerability?",
+    "ground_truth_answer": "CVE-2026-31431",
+    "source_doc_id": "copy-fail-linux-vulnerability-mitigation",
+    "source_title": "How Cloudflare responded to the \u201cCopy Fail\u201d Linux vulnerability",
+    "source_url": "https://blog.cloudflare.com/copy-fail-linux-vulnerability-mitigation/",
+    "reviewed": true
+  },
+  {
+    "question": "What was the total duration of the Cloudflare outage on February 20, 2026?",
+    "ground_truth_answer": "6 hours and 7 minutes",
+    "source_doc_id": "cloudflare-outage-february-20-2026",
+    "source_title": "Cloudflare outage on February 20, 2026",
+    "source_url": "https://blog.cloudflare.com/cloudflare-outage-february-20-2026/",
+    "reviewed": true
+  },
+  {
+    "question": "How many BYOIP prefixes were withdrawn from the Cloudflare network during the incident?",
+    "ground_truth_answer": "1,100",
+    "source_doc_id": "cloudflare-outage-february-20-2026",
+    "source_title": "Cloudflare outage on February 20, 2026",
+    "source_url": "https://blog.cloudflare.com/cloudflare-outage-february-20-2026/",
+    "reviewed": true
+  },
+  {
+    "question": "At what time did Cloudflare engineers manually restore the remaining ~300 prefixes that were unable to be remediated through the dashboard?",
+    "ground_truth_answer": "23:03 UTC",
+    "source_doc_id": "cloudflare-outage-february-20-2026",
+    "source_title": "Cloudflare outage on February 20, 2026",
+    "source_url": "https://blog.cloudflare.com/cloudflare-outage-february-20-2026/",
+    "reviewed": true
+  },
+  {
+    "question": "At what time UTC did DENIC start publishing incorrect DNSSEC signatures for the .de zone on May 5, 2026?",
+    "ground_truth_answer": "19:30",
+    "source_doc_id": "de-tld-outage-dnssec",
+    "source_title": "When DNSSEC goes wrong: how we responded to the .de TLD outage",
+    "source_url": "https://blog.cloudflare.com/de-tld-outage-dnssec/",
+    "reviewed": true
+  },
+  {
+    "question": "What is the name of the Cloudflare public DNS resolver that was affected by the .de TLD outage?",
+    "ground_truth_answer": "1.1.1.1",
+    "source_doc_id": "de-tld-outage-dnssec",
+    "source_title": "When DNSSEC goes wrong: how we responded to the .de TLD outage",
+    "source_url": "https://blog.cloudflare.com/de-tld-outage-dnssec/",
+    "reviewed": true
+  },
+  {
+    "question": "On what date did DENIC start publishing incorrect DNSSEC signatures for the .de zone?",
+    "ground_truth_answer": "May 5, 2026",
+    "source_doc_id": "de-tld-outage-dnssec",
+    "source_title": "When DNSSEC goes wrong: how we responded to the .de TLD outage",
+    "source_url": "https://blog.cloudflare.com/de-tld-outage-dnssec/",
+    "reviewed": true
+  },
+  {
+    "question": "What was the approximate drop in domestic traffic at the Uganda Internet Exchange Point (UIXP) during the government-directed shutdown?",
+    "ground_truth_answer": "from 72 Gbps to 1 Gbps",
+    "source_doc_id": "q1-2026-internet-disruption-summary",
+    "source_title": "Shutdowns, power outages, and conflict: a review of Q1 2026 Internet disruptions",
+    "source_url": "https://blog.cloudflare.com/q1-2026-internet-disruption-summary/",
+    "reviewed": true
+  },
+  {
+    "question": "When was full Internet restoration announced by the UCC in Uganda?",
+    "ground_truth_answer": "January 26",
+    "source_doc_id": "q1-2026-internet-disruption-summary",
+    "source_title": "Shutdowns, power outages, and conflict: a review of Q1 2026 Internet disruptions",
+    "source_url": "https://blog.cloudflare.com/q1-2026-internet-disruption-summary/",
+    "reviewed": true
+  },
+  {
+    "question": "How long did the near-complete shutdown of Internet connectivity last in the Republic of Congo during the presidential election?",
+    "ground_truth_answer": "approximately 60 hours",
+    "source_doc_id": "q1-2026-internet-disruption-summary",
+    "source_title": "Shutdowns, power outages, and conflict: a review of Q1 2026 Internet disruptions",
+    "source_url": "https://blog.cloudflare.com/q1-2026-internet-disruption-summary/",
+    "reviewed": true
+  },
+  {
+    "question": "How many Internet disruptions were observed in 2025?",
+    "ground_truth_answer": "over 180",
+    "source_doc_id": "q4-2025-internet-disruption-summary",
+    "source_title": "Cable cuts, storms, and DNS: a look at Internet disruptions in Q4 2025",
+    "source_url": "https://blog.cloudflare.com/q4-2025-internet-disruption-summary/",
+    "reviewed": true
+  },
+  {
+    "question": "On what date and time did traffic from Digicel Haiti begin to fall due to a cable cut?",
+    "ground_truth_answer": "October 16, 14:30 local time (18:30 UTC)",
+    "source_doc_id": "q4-2025-internet-disruption-summary",
+    "source_title": "Cable cuts, storms, and DNS: a look at Internet disruptions in Q4 2025",
+    "source_url": "https://blog.cloudflare.com/q4-2025-internet-disruption-summary/",
+    "reviewed": true
+  },
+  {
+    "question": "How long did the initial Internet disruption in Tanzania last on October 29?",
+    "ground_truth_answer": "approximately 26 hours",
+    "source_doc_id": "q4-2025-internet-disruption-summary",
+    "source_title": "Cable cuts, storms, and DNS: a look at Internet disruptions in Q4 2025",
+    "source_url": "https://blog.cloudflare.com/q4-2025-internet-disruption-summary/",
+    "reviewed": true
+  },
+  {
+    "question": "What is the Autonomous System Number of Cloudflare's main ASN?",
+    "ground_truth_answer": "13335",
+    "source_doc_id": "enforce-first-as-bgp",
+    "source_title": "Enforcing the First AS in BGP AS PATHs",
+    "source_url": "https://blog.cloudflare.com/enforce-first-as-bgp/",
+    "reviewed": true
+  },
+  {
+    "question": "What is the prefix involved in the hijack reported by Spamhaus that is examined in the article?",
+    "ground_truth_answer": "90.98.0.0/15",
+    "source_doc_id": "enforce-first-as-bgp",
+    "source_title": "Enforcing the First AS in BGP AS PATHs",
+    "source_url": "https://blog.cloudflare.com/enforce-first-as-bgp/",
+    "reviewed": true
+  },
+  {
+    "question": "What is the date range used in the monocle search command to find a BGP UPDATE message related to the hijack?",
+    "ground_truth_answer": "2026-04-13T00:20:00Z to 2026-04-13T00:23:59Z",
+    "source_doc_id": "enforce-first-as-bgp",
+    "source_title": "Enforcing the First AS in BGP AS PATHs",
+    "source_url": "https://blog.cloudflare.com/enforce-first-as-bgp/",
+    "reviewed": true
+  },
+  {
+    "question": "At what time did DENIC start publishing incorrect DNSSEC signatures for the .de zone on May 5, 2026?",
+    "ground_truth_answer": "19:30 UTC",
+    "source_doc_id": "de-tld-outage-dnssec",
+    "source_title": "When DNSSEC goes wrong: how we responded to the .de TLD outage",
+    "source_url": "https://blog.cloudflare.com/de-tld-outage-dnssec/",
+    "reviewed": true
+  },
+  {
+    "question": "What is the name of the Cloudflare public DNS resolver that was affected by the .de TLD outage?",
+    "ground_truth_answer": "1.1.1.1",
+    "source_doc_id": "de-tld-outage-dnssec",
+    "source_title": "When DNSSEC goes wrong: how we responded to the .de TLD outage",
+    "source_url": "https://blog.cloudflare.com/de-tld-outage-dnssec/",
+    "reviewed": true
+  },
+  {
+    "question": "What is the name of the RFC that formalizes the behavior of serving stale cached records when upstream resolution fails?",
+    "ground_truth_answer": "RFC 8767",
+    "source_doc_id": "de-tld-outage-dnssec",
+    "source_title": "When DNSSEC goes wrong: how we responded to the .de TLD outage",
+    "source_url": "https://blog.cloudflare.com/de-tld-outage-dnssec/",
+    "reviewed": true
+  },
+  {
+    "question": "What is the name of the new capability launched by Cloudflare for eligible Enterprise customers?",
+    "ground_truth_answer": "Application Services for Private Origins",
+    "source_doc_id": "private-origins-dns-routing",
+    "source_title": "Route public traffic to private applications with Cloudflare",
+    "source_url": "https://blog.cloudflare.com/private-origins-dns-routing/",
+    "reviewed": true
+  },
+  {
+    "question": "What is the name of the connector software that runs on or near the origin for Cloudflare Tunnel?",
+    "ground_truth_answer": "cloudflared",
+    "source_doc_id": "private-origins-dns-routing",
+    "source_title": "Route public traffic to private applications with Cloudflare",
+    "source_url": "https://blog.cloudflare.com/private-origins-dns-routing/",
+    "reviewed": true
+  },
+  {
+    "question": "What is the total provisioned external interconnection capacity of Cloudflare's network in 2026?",
+    "ground_truth_answer": "500 terabits per second (Tbps)",
+    "source_doc_id": "500-tbps-of-capacity",
+    "source_title": "500 Tbps of capacity: 16 years of scaling our global network",
+    "source_url": "https://blog.cloudflare.com/500-tbps-of-capacity/",
+    "reviewed": true
+  },
+  {
+    "question": "In what year did Cloudflare launch with a single transit provider and a reverse proxy?",
+    "ground_truth_answer": "2010",
+    "source_doc_id": "500-tbps-of-capacity",
+    "source_title": "500 Tbps of capacity: 16 years of scaling our global network",
+    "source_url": "https://blog.cloudflare.com/500-tbps-of-capacity/",
+    "reviewed": true
+  },
+  {
+    "question": "What was the size of the DDoS attack that Cloudflare mitigated in 2025?",
+    "ground_truth_answer": "31.4 Tbps",
+    "source_doc_id": "500-tbps-of-capacity",
+    "source_title": "500 Tbps of capacity: 16 years of scaling our global network",
+    "source_url": "https://blog.cloudflare.com/500-tbps-of-capacity/",
+    "reviewed": true
+  },
+  {
+    "question": "What percentage of humanity has adopted regular use of generative AI in 3.5 years?",
+    "ground_truth_answer": "30%",
+    "source_doc_id": "agentic-internet-bot-report",
+    "source_title": "Content Independence Day, one year on- building the business model for the agentic Internet",
+    "source_url": "https://blog.cloudflare.com/agentic-internet-bot-report/",
+    "reviewed": true
+  },
+  {
+    "question": "What percentage of crawler requests are now for AI training as of June 2026?",
+    "ground_truth_answer": "52%",
+    "source_doc_id": "agentic-internet-bot-report",
+    "source_title": "Content Independence Day, one year on- building the business model for the agentic Internet",
+    "source_url": "https://blog.cloudflare.com/agentic-internet-bot-report/",
+    "reviewed": true
+  },
+  {
+    "question": "How much has human traffic declined in some of the most heavily crawled categories in less than one year?",
+    "ground_truth_answer": "40%",
+    "source_doc_id": "agentic-internet-bot-report",
+    "source_title": "Content Independence Day, one year on- building the business model for the agentic Internet",
+    "source_url": "https://blog.cloudflare.com/agentic-internet-bot-report/",
+    "reviewed": true
+  }
+]
