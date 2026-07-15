@@ -15,6 +15,7 @@ Install first:
 """
 
 import json
+import time
 from pathlib import Path
 
 from datasets import Dataset
@@ -45,9 +46,19 @@ RESULTS_DIR = Path("data/eval")
 # your pipeline's own calls for the same 100k/day budget.
 RAGAS_JUDGE_MODEL = "llama-3.1-8b-instant"
 
+# Caps how many questions go through the MAIN pipeline (run_pipeline) in this
+# run -- separate from EVAL_SAMPLE_SIZE below, which only limits the Ragas
+# metrics step. Useful for a cheap end-to-end smoke test. Set to None to run
+# the full eval_dataset.json.
+EVAL_DATASET_SAMPLE = None
+
 # Optional: cap how many factual questions to send through Ragas in one run,
 # in case your daily quota is still tight. Set to None to run everything.
-EVAL_SAMPLE_SIZE = 3
+EVAL_SAMPLE_SIZE = None
+
+# If the main pipeline hits a rate limit, wait this long before retrying once,
+# rather than crashing the whole eval run over one question.
+RATE_LIMIT_RETRY_WAIT_SECONDS = 300
 
 # Phrases that indicate the model appropriately declined to answer -- used only
 # for the "should_decline" questions, to check the refusal actually happened.
@@ -63,6 +74,8 @@ def run_pipeline(query: str, retriever: RerankingRetriever) -> dict:
     """
     Runs one question through the full pipeline and returns everything Ragas
     needs: the generated answer, and the raw context strings actually used.
+    Retries once with a wait if the main model hits a Groq rate limit, instead
+    of letting one question's failure crash the entire eval run.
     """
     chunks = retriever.retrieve_and_rerank(query)
     contexts = [c["payload"]["text"] for c in chunks]
@@ -80,8 +93,22 @@ Question: {query}
 
 Answer (remember to cite sources using [1], [2], etc.):"""
 
-    response = project_llm.complete(prompt)
-    return {"answer": response.text.strip(), "contexts": contexts}
+    try:
+        response = project_llm.complete(prompt)
+        return {"answer": response.text.strip(), "contexts": contexts}
+    except Exception as e:
+        if "rate_limit" in str(e).lower() or "429" in str(e):
+            print(f"  Rate limit hit, waiting {RATE_LIMIT_RETRY_WAIT_SECONDS}s before retrying once...")
+            time.sleep(RATE_LIMIT_RETRY_WAIT_SECONDS)
+            try:
+                response = project_llm.complete(prompt)
+                return {"answer": response.text.strip(), "contexts": contexts}
+            except Exception as e2:
+                print(f"  Retry also failed: {e2}")
+                return {"answer": "[SKIPPED -- rate limit exceeded after retry]", "contexts": contexts}
+        else:
+            print(f"  Unexpected error: {e}")
+            return {"answer": f"[SKIPPED -- error: {e}]", "contexts": contexts}
 
 
 def evaluate_factual_questions(rows: list[dict]) -> None:
@@ -166,6 +193,10 @@ def evaluate_decline_questions(rows: list[dict]) -> None:
 def main():
     with open(EVAL_DATASET_PATH, "r", encoding="utf-8") as f:
         eval_dataset = json.load(f)
+
+    if EVAL_DATASET_SAMPLE:
+        eval_dataset = eval_dataset[:EVAL_DATASET_SAMPLE]
+        print(f"(Limited to a sample of {EVAL_DATASET_SAMPLE} questions for the main pipeline this run)")
 
     print(f"Loaded {len(eval_dataset)} eval questions.")
 
