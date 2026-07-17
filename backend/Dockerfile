@@ -15,22 +15,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Pre-download the embedding + reranker model weights INTO the image at build
-# time. This avoids two problems seen during development:
-#   1. Slow/unreliable downloads happening at container startup over the
-#      network (the RemoteDisconnected errors from Hugging Face)
-#   2. Slow repeated reads through a Windows-to-WSL2 bind-mounted cache
-#      folder at runtime
-# The download happens once, here, and gets cached as a Docker image layer --
-# subsequent builds skip this step entirely unless requirements.txt changes.
-RUN python -c "\
-from FlagEmbedding import BGEM3FlagModel; \
-BGEM3FlagModel('BAAI/bge-m3', use_fp16=False); \
-print('BGE-M3 downloaded.')"
-RUN python -c "\
-from FlagEmbedding import FlagReranker; \
-FlagReranker('BAAI/bge-reranker-v2-m3', use_fp16=False); \
-print('Reranker downloaded.')"
+# NOTE: model weights are NOT pre-downloaded here -- see backend/Dockerfile
+# for the full explanation (image size limits on Railway). Models download
+# at runtime on first startup instead. For local Docker Compose use, the
+# host's Hugging Face cache can optionally be mounted as a volume to avoid
+# re-downloading on every container rebuild (see docker-compose.yml).
 
 COPY . .
 
