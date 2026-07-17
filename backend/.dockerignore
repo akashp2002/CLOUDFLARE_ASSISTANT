@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Virtual environment (never needed inside the image -- packages are
+# installed fresh via requirements.txt during the build instead)
+venv/
+
+# Secrets (env vars are set via Railway's dashboard, not baked into the image)
+.env
+.env.example
+
+# Git
+.git/
+.gitignore
+
+# Data not needed at runtime -- only data/embeddings/chunks_with_embeddings.json
+# is actually loaded by the running app (hybrid_retrieval.py). Raw scraped
+# markdown, intermediate chunk files, and eval artifacts are development-time
+# outputs, not needed to serve requests, and just add unnecessary image weight.
+data/raw/
+data/chunks/
+data/eval/
+
+# Docs, not needed inside the running container
+*.md
+
+# OS/editor junk
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
