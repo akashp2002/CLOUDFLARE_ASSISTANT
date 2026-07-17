@@ -9,8 +9,9 @@ __pycache__/
 *.pyc
 backend/__pycache__/
 
-# Generated data (large, regeneratable from source -- optional to ignore depending on your repo strategy)
-backend/data/embeddings/
+# Generated data -- NOTE: backend/data/embeddings IS committed (not ignored),
+# since Railway's build has no persistent volume like local Docker Compose --
+# the embeddings file must be present in the repo for the image build to COPY it in.
 qdrant_storage/
 
 # Node / React

@@ -16,6 +16,8 @@ Install first:
 import json
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+
 
 from qdrant_client import QdrantClient
 from rank_bm25 import BM25Okapi
@@ -23,7 +25,13 @@ from FlagEmbedding import BGEM3FlagModel
 from langsmith import traceable
 
 EMBEDDINGS_PATH = Path("data/embeddings/chunks_with_embeddings.json")
+load_dotenv()
 
+
+# Qdrant Cloud connection (preferred if set) -- falls back to local
+# host/port connection for local Docker/dev use if QDRANT_URL isn't set.
+QDRANT_URL = os.environ.get("QDRANT_URL")
+QDRANT_API_KEY = os.environ.get("QDRANT_API_KEY")
 QDRANT_HOST = os.environ.get("QDRANT_HOST", "localhost")  # "qdrant" when run via Docker Compose
 QDRANT_PORT = 6333
 COLLECTION_NAME = "cloudflare_incidents"
@@ -49,7 +57,10 @@ class HybridRetriever:
         self.embed_model = BGEM3FlagModel("BAAI/bge-m3", use_fp16=True)
 
         print("Connecting to Qdrant...")
-        self.qdrant = QdrantClient(host=QDRANT_HOST, port=QDRANT_PORT)
+        if QDRANT_URL:
+            self.qdrant = QdrantClient(url=QDRANT_URL, api_key=QDRANT_API_KEY)
+        else:
+            self.qdrant = QdrantClient(host=QDRANT_HOST, port=QDRANT_PORT)
         print("HybridRetriever ready.\n")
 
     @traceable(name="vector_search", run_type="retriever")

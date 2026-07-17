@@ -14,17 +14,27 @@ Install first:
 
 import json
 from pathlib import Path
+import os
+from dotenv import load_dotenv
 
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams, PointStruct
 
+load_dotenv()
+
 EMBEDDINGS_PATH = Path("data/embeddings/chunks_with_embeddings.json")
 
-QDRANT_HOST = "localhost"
+# QDRANT_HOST = "localhost"
+# QDRANT_PORT = 6333
+
+QDRANT_URL = os.environ.get("QDRANT_URL")
+QDRANT_API_KEY = os.environ.get("QDRANT_API_KEY")
+QDRANT_HOST = os.environ.get("QDRANT_HOST", "localhost")
 QDRANT_PORT = 6333
 COLLECTION_NAME = "cloudflare_incidents"
 VECTOR_DIM = 1024  # BGE-M3's dense embedding size, confirmed in Phase 4's output
-
+print("QDRANT_URL:", QDRANT_URL)
+print("QDRANT_API_KEY:", "Loaded" if QDRANT_API_KEY else "Missing")
 UPLOAD_BATCH_SIZE = 50  # how many points to upload per request
 
 
@@ -40,7 +50,10 @@ def main():
     chunks = load_chunks_with_embeddings()
     print(f"Loaded {len(chunks)} chunks with embeddings.")
 
-    client = QdrantClient(host=QDRANT_HOST, port=QDRANT_PORT)
+    client = QdrantClient(
+    url=QDRANT_URL,
+    api_key=QDRANT_API_KEY,
+)
 
     # Create the collection. recreate_collection wipes it first if it already exists --
     # convenient while iterating on your pipeline, since re-running this script gives
