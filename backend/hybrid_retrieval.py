@@ -21,7 +21,8 @@ from dotenv import load_dotenv
 
 from qdrant_client import QdrantClient
 from rank_bm25 import BM25Okapi
-from FlagEmbedding import BGEM3FlagModel
+# from FlagEmbedding import 
+from FlagEmbedding import FlagModel
 from langsmith import traceable
 
 EMBEDDINGS_PATH = Path("data/embeddings/chunks_with_embeddings.json")
@@ -34,7 +35,7 @@ QDRANT_URL = os.environ.get("QDRANT_URL")
 QDRANT_API_KEY = os.environ.get("QDRANT_API_KEY")
 QDRANT_HOST = os.environ.get("QDRANT_HOST", "localhost")  # "qdrant" when run via Docker Compose
 QDRANT_PORT = 6333
-COLLECTION_NAME = "cloudflare_incidents"
+COLLECTION_NAME = "cloudflare_incidents_bge_small"
 
 TOP_K_EACH = 10   # how many results to pull from EACH method before fusing
 TOP_K_FINAL = 5   # how many fused results to return at the end
@@ -53,9 +54,13 @@ class HybridRetriever:
         self.bm25 = BM25Okapi(tokenized_corpus)
         print(f"BM25 index built over {len(self.chunks)} chunks.")
 
-        print("Loading BGE-M3 model for query embedding...")
-        self.embed_model = BGEM3FlagModel("BAAI/bge-m3", use_fp16=True)
-
+        # print("Loading BGE-M3 model for query embedding...")
+        # self.embed_model = BGEM3FlagModel("BAAI/bge-m3", use_fp16=True)
+        print("Loading BGE-small model for query embedding...")
+        self.embed_model = FlagModel(
+            "BAAI/bge-small-en-v1.5",
+            use_fp16=False
+        )
         print("Connecting to Qdrant...")
         if QDRANT_URL:
             self.qdrant = QdrantClient(url=QDRANT_URL, api_key=QDRANT_API_KEY)
@@ -66,7 +71,8 @@ class HybridRetriever:
     @traceable(name="vector_search", run_type="retriever")
     def vector_search(self, query: str, top_k: int = TOP_K_EACH) -> list[dict]:
         """Embeds the query and searches Qdrant for the closest chunk vectors."""
-        query_vector = self.embed_model.encode([query], return_dense=True)["dense_vecs"][0].tolist()
+        # query_vector = self.embed_model.encode([query], return_dense=True)["dense_vecs"][0].tolist()
+        query_vector = self.embed_model.encode([query])[0].tolist()
 
         response = self.qdrant.query_points(
             collection_name=COLLECTION_NAME,
