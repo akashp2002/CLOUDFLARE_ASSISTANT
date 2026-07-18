@@ -26,7 +26,7 @@ class RerankingRetriever:
         self.hybrid_retriever = HybridRetriever()
 
         print("Loading cross-encoder reranker (BAAI/bge-reranker-v2-m3)...")
-        self.reranker = FlagReranker("BAAI/bge-reranker-v2-m3", use_fp16=True)
+        self.reranker = FlagReranker("BAAI/bge-reranker-base",use_fp16=False)
         print("Reranker ready.\n")
 
     @traceable(name="retrieve_and_rerank", run_type="chain")
