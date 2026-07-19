@@ -51,7 +51,7 @@ app = FastAPI(title="Cloudflare Incident RAG API")
 # In production, restrict allow_origins to your actual frontend's domain.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:3000","http://localhost:8081","http://localhost:8080"],
+    allow_origins=["http://localhost:5173","https://cloudflareai-assistant.vercel.app", "http://localhost:5174", "http://localhost:3000","http://localhost:8081","http://localhost:8080"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
