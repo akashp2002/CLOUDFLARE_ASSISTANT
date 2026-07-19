@@ -23,11 +23,17 @@ FINAL_TOP_N = 3          # how many reranked chunks to keep for the LLM (Phase 8
 class RerankingRetriever:
     def __init__(self):
         # Reuse everything already built in Phase 6 -- BM25 index, embedding model, Qdrant connection
+        print("STEP 1")
         self.hybrid_retriever = HybridRetriever()
 
         print("Loading cross-encoder reranker (BAAI/bge-reranker-v2-m3)...")
-        self.reranker = FlagReranker("BAAI/bge-reranker-base",use_fp16=False)
-        print("Reranker ready.\n")
+        print("STEP 2")
+
+        # self.reranker = FlagReranker("BAAI/bge-reranker-base",use_fp16=False)
+        self.reranker = None
+        # print("Reranker ready.\n")
+        print("Reranker is skipping.\n")
+
 
     @traceable(name="retrieve_and_rerank", run_type="chain")
     def retrieve_and_rerank(self, query: str, top_n: int = FINAL_TOP_N) -> list[dict]:
@@ -37,23 +43,24 @@ class RerankingRetriever:
         if not candidates:
             return []
 
-        # Step 2: build (query, chunk_text) pairs -- the cross-encoder scores each pair jointly
-        pairs = [[query, c["payload"]["text"]] for c in candidates]
+        # # Step 2: build (query, chunk_text) pairs -- the cross-encoder scores each pair jointly
+        # pairs = [[query, c["payload"]["text"]] for c in candidates]
 
-        # Step 3: get one relevance score per pair directly from the cross-encoder
-        scores = self.reranker.compute_score(pairs, normalize=True)  # normalize -> scores in [0, 1]
+        # # Step 3: get one relevance score per pair directly from the cross-encoder
+        # scores = self.reranker.compute_score(pairs, normalize=True)  # normalize -> scores in [0, 1]
 
-        # compute_score returns a single float (not a list) if there's only one pair -- handle both cases
-        if isinstance(scores, float):
-            scores = [scores]
+        # # compute_score returns a single float (not a list) if there's only one pair -- handle both cases
+        # if isinstance(scores, float):
+        #     scores = [scores]
 
-        # Step 4: attach the rerank score to each candidate and sort by it, best first
-        for candidate, score in zip(candidates, scores):
-            candidate["rerank_score"] = score
+        # # Step 4: attach the rerank score to each candidate and sort by it, best first
+        # for candidate, score in zip(candidates, scores):
+        #     candidate["rerank_score"] = score
 
-        reranked = sorted(candidates, key=lambda c: c["rerank_score"], reverse=True)
+        # reranked = sorted(candidates, key=lambda c: c["rerank_score"], reverse=True)
 
-        return reranked[:top_n]
+        # return reranked[:top_n]
+        return candidates[:top_n]
 
 
 if __name__ == "__main__":
