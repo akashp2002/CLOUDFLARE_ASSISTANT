@@ -23,11 +23,9 @@ FINAL_TOP_N = 3          # how many reranked chunks to keep for the LLM (Phase 8
 class RerankingRetriever:
     def __init__(self):
         # Reuse everything already built in Phase 6 -- BM25 index, embedding model, Qdrant connection
-        print("STEP 1")
         self.hybrid_retriever = HybridRetriever()
 
         print("Loading cross-encoder reranker (BAAI/bge-reranker-v2-m3)...")
-        print("STEP 2")
 
         # self.reranker = FlagReranker("BAAI/bge-reranker-base",use_fp16=False)
         self.reranker = None
