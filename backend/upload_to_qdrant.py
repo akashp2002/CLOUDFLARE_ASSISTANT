@@ -31,8 +31,8 @@ QDRANT_URL = os.environ.get("QDRANT_URL")
 QDRANT_API_KEY = os.environ.get("QDRANT_API_KEY")
 QDRANT_HOST = os.environ.get("QDRANT_HOST", "localhost")
 QDRANT_PORT = 6333
-COLLECTION_NAME = "cloudflare_incidents"
-VECTOR_DIM = 1024  # BGE-M3's dense embedding size, confirmed in Phase 4's output
+COLLECTION_NAME = "cloudflare_incidents_bge_small"
+VECTOR_DIM =  384  # BGE-M3's dense embedding size, confirmed in Phase 4's output
 print("QDRANT_URL:", QDRANT_URL)
 print("QDRANT_API_KEY:", "Loaded" if QDRANT_API_KEY else "Missing")
 UPLOAD_BATCH_SIZE = 50  # how many points to upload per request
@@ -70,9 +70,15 @@ def main():
     # back later without a separate lookup).
     points = []
     for i, chunk in enumerate(chunks):
+        if "embedding" not in chunk:
+                    print(f"Missing embedding at chunk {i}")
+                    print(chunk.keys())
+                    raise Exception("Embedding missing")
+         
         points.append(
             PointStruct(
-                id=i,  # Qdrant needs a unique int or UUID per point -- sequential int is simplest here
+                id=i,
+          # Qdrant needs a unique int or UUID per point -- sequential int is simplest here
                 vector=chunk["embedding"],
                 payload={
                     "text": chunk["text"],

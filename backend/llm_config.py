@@ -36,7 +36,7 @@ if not GROQ_API_KEY or GROQ_API_KEY == "your-groq-api-key-here":
 # Q&A generation — good balance of quality and speed. Swap the model name if you want
 # to try a smaller/faster one (e.g. llama-3.1-8b-instant) for quicker iteration while debugging.
 llm = Groq(
-    model="llama-3.3-70b-versatile",
+    model="openai/gpt-oss-120b",
     api_key=GROQ_API_KEY,
     temperature=0.1,  # low temperature -- we want grounded, consistent answers, not creativity
 )

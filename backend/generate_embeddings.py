@@ -16,7 +16,8 @@ Install first:
 import json
 from pathlib import Path
 
-from FlagEmbedding import BGEM3FlagModel
+# from FlagEmbedding import BGEM3FlagModel
+from FlagEmbedding import FlagModel
 
 CHUNKS_DIR = Path("data/chunks")
 EMBEDDINGS_DIR = Path("data/embeddings")
@@ -40,27 +41,52 @@ def main():
 
     print("Loading BGE-M3 model (first run downloads ~2GB, please be patient)...")
     # use_fp16=True halves memory usage and speeds up inference on GPU, with negligible quality loss
-    model = BGEM3FlagModel("BAAI/bge-m3", use_fp16=True)
-    print("Model loaded.")
+    # model = BGEM3FlagModel("BAAI/bge-m3", use_fp16=True)
+    # print("Model loaded.")
+    print("Loading BGE-small model...")
+
+    model = FlagModel(
+    "BAAI/bge-small-en-v1.5",
+    use_fp16=False
+    )
 
     texts = [chunk["text"] for chunk in chunks]
 
     print(f"Generating embeddings for {len(texts)} chunks (batch size {BATCH_SIZE})...")
-    output = model.encode(
-        texts,
-        batch_size=BATCH_SIZE,
-        max_length=1024,  # generous ceiling -- covers even our largest sub-split chunks safely
-        return_dense=True,
-        return_sparse=False,   # sparse vectors come in Phase 6 (hybrid retrieval), not needed yet
-        return_colbert_vecs=False,
-    )
+    # output = model.encode(
+    #     texts,
+    #     batch_size=BATCH_SIZE,
+    #     max_length=1024,  # generous ceiling -- covers even our largest sub-split chunks safely
+    #     return_dense=True,
+    #     return_sparse=False,   # sparse vectors come in Phase 6 (hybrid retrieval), not needed yet
+    #     return_colbert_vecs=False,
+    # )
 
-    dense_vectors = output["dense_vecs"]  # one vector per chunk, same order as `texts`
-    print(f"Done embedding. Vector dimension: {len(dense_vectors[0])}")
+    # dense_vectors = output["dense_vecs"]  # one vector per chunk, same order as `texts`
+    dense_vectors = []
 
+    for i in range(0, len(texts), BATCH_SIZE):
+        batch = texts[i:i + BATCH_SIZE]
+        print(f"Encoding batch {i} to {i + len(batch) - 1}")
+
+        try:
+            embeddings = model.encode(
+                batch
+            )
+            dense_vectors.extend(embeddings)
+        except Exception as e:
+            print(f"\nError in batch starting at index {i}")
+            for j, text in enumerate(batch):
+                print(f"Chunk {i+j}: length={len(text)}")
+                print(repr(text[:200]))
+                print("-" * 50)
+            raise
     # Attach each chunk's embedding back onto its own dict
     for chunk, vector in zip(chunks, dense_vectors):
-        chunk["embedding"] = vector.tolist()  # numpy array -> plain list, so it's JSON-serializable
+        # chunk["embedding"] = vector.tolist()  # numpy array -> plain list, so it's JSON-serializable
+        chunk["embedding"] = (
+        vector.tolist() if hasattr(vector, "tolist") else vector
+        )
 
     out_path = EMBEDDINGS_DIR / "chunks_with_embeddings.json"
     with open(out_path, "w", encoding="utf-8") as f:

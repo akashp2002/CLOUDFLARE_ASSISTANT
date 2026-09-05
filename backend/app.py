@@ -31,24 +31,27 @@ from llm_config import llm
 retriever_holder: dict = {}
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Runs once when the server starts up -- loads all the heavy models/connections.
-    print("Loading RAG pipeline (this takes a moment on first startup)...")
-    retriever_holder["retriever"] = RerankingRetriever()
-    print("RAG pipeline ready. API is now serving requests.")
-    yield
-    # (nothing needed on shutdown for this project)
+# @asynccontextmanager
+# async def lifespan(app: FastAPI):
+#     # Runs once when the server starts up -- loads all the heavy models/connections.
+#     print("Loading RAG pipeline (this takes a moment on first startup)...")
+#     retriever_holder["retriever"] = RerankingRetriever()
+#     print("RAG pipeline ready. API is now serving requests.")
+#     yield
+#     # (nothing needed on shutdown for this project)
+retriever_holder = {
+    "retriever": None
+}
 
 
-app = FastAPI(title="Cloudflare Incident RAG API", lifespan=lifespan)
+app = FastAPI(title="Cloudflare Incident RAG API")
 
 # Allows your React dev server (typically localhost:5173 for Vite, or
 # localhost:3000 for Create React App) to call this API from the browser.
 # In production, restrict allow_origins to your actual frontend's domain.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:3000","http://localhost:8081","http://localhost:8080"],
+    allow_origins=["http://localhost:5173","https://cloudflare-assistant.vercel.app", "http://localhost:5174", "http://localhost:3000","http://localhost:8081","http://localhost:8080"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -79,6 +82,10 @@ def health_check():
 
 @app.post("/query", response_model=QueryResponse)
 def query(request: QueryRequest):
+    if retriever_holder["retriever"] is None:
+         print("Loading RAG pipeline...")
+         retriever_holder["retriever"] = RerankingRetriever()
+
     if not request.question or not request.question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty.")
 
