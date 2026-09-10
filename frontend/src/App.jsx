@@ -13,6 +13,7 @@ function App() {
   const [question, setQuestion] = useState('')
   const [answer, setAnswer] = useState('')
   const [citations, setCitations] = useState([])
+  const [conversation, setConversation] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -26,6 +27,8 @@ function App() {
     setError('')
     setAnswer('')
     setCitations([])
+    let answerText = ''
+    let citationList = []
 
     try {
       const response = await fetch(API_URL, {
@@ -35,6 +38,10 @@ function App() {
         },
         body: JSON.stringify({
           question: trimmedQuestion,
+          history: conversation.slice(-3).flatMap((turn) => [
+            { role: 'user', content: turn.question },
+            { role: 'assistant', content: turn.answer },
+          ]),
         }),
       })
 
@@ -42,10 +49,47 @@ function App() {
         throw new Error(`Server responded with status ${response.status}`)
       }
 
-      const data = await response.json()
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder('utf-8')
+      let done = false
+      let buffer = ''
 
-      setAnswer(data.answer)
-      setCitations(data.citations || [])
+      while (!done) {
+        const { value, done: readerDone } = await reader.read()
+        done = readerDone
+        if (value) {
+          buffer += decoder.decode(value, { stream: true })
+          const lines = buffer.split('\n')
+          buffer = lines.pop() || ''
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const dataStr = line.slice(6)
+              try {
+                const parsed = JSON.parse(dataStr)
+                if (parsed.type === 'content') {
+                  answerText += parsed.text
+                  setAnswer(answerText)
+                } else if (parsed.type === 'citations') {
+                  citationList = parsed.citations || []
+                  setCitations(citationList)
+                }
+              } catch (e) {
+                console.error('Error parsing SSE data', e)
+              }
+            }
+          }
+        }
+      }
+
+      setConversation((previous) => [
+        ...previous,
+        {
+          question: trimmedQuestion,
+          answer: answerText,
+          citations: citationList,
+        },
+      ])
     } catch (err) {
       setError(
         'Unable to reach the RAG backend. Make sure the FastAPI server is running.'
@@ -65,6 +109,14 @@ function App() {
     submitQuestion(example)
   }
 
+  function startNewConversation() {
+    setQuestion('')
+    setAnswer('')
+    setCitations([])
+    setConversation([])
+    setError('')
+  }
+
   return (
     <div className="app-shell">
       <nav className="navbar">
@@ -78,7 +130,14 @@ function App() {
             </div>
           </div>
 
-
+          <button
+            type="button"
+            className="new-conversation-button"
+            onClick={startNewConversation}
+            disabled={loading || conversation.length === 0}
+          >
+            New conversation
+          </button>
         </div>
       </nav>
 
@@ -171,7 +230,7 @@ function App() {
           </div>
         )}
 
-        {loading && (
+        {loading && !answer && (
           <section className="loading-card">
             <div className="loader"></div>
 
@@ -186,19 +245,48 @@ function App() {
           </section>
         )}
 
-        {answer && !loading && (
+        {conversation.length > 1 && (
+          <section className="conversation-history" aria-label="Conversation history">
+            <div className="history-heading">
+              <div>
+                <span className="card-eyebrow">Earlier in this conversation</span>
+                <h2>Previous answers</h2>
+              </div>
+              <span className="history-count">{conversation.length - 1} {conversation.length === 2 ? 'turn' : 'turns'}</span>
+            </div>
+
+            <div className="history-list">
+              {conversation.slice(0, -1).map((turn, index) => (
+                <details className="history-turn" key={`${turn.question}-${index}`}>
+                  <summary>{turn.question}</summary>
+                  <div className="history-answer">
+                    <span className="history-label">Assistant</span>
+                    <p>{turn.answer}</p>
+                  </div>
+                </details>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {answer && (
           <section className="results">
             <article className="answer-card">
               <div className="card-header">
                 <div>
                   <span className="card-eyebrow">Generated response</span>
-                  <h2>Answer</h2>
+                  <h2>{loading ? 'Answering' : 'Answer'}</h2>
                 </div>
 
-                <div className="grounded-badge">
-                  <span>✓</span>
-                  Grounded
+                <div className={`grounded-badge ${loading ? 'is-streaming' : ''}`}>
+                  <span>{loading ? '●' : '✓'}</span>
+                  {loading ? 'Streaming' : 'Grounded'}
                 </div>
+              </div>
+
+              <div className="active-question">
+                <span className="history-label">You asked</span>
+                <p>{question}</p>
               </div>
 
               <div className="answer-content">
