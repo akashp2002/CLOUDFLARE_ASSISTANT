@@ -17,10 +17,13 @@ Run with:
 """
 
 from contextlib import asynccontextmanager
+from typing import Literal
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
+import json
 
 from reranking import RerankingRetriever
 from generate_answer import build_context_block, build_citation_map, SYSTEM_PROMPT
@@ -60,6 +63,12 @@ app.add_middleware(
 
 class QueryRequest(BaseModel):
     question: str
+    history: list["HistoryMessage"] = []
+
+
+class HistoryMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str
 
 
 class Citation(BaseModel):
@@ -80,7 +89,7 @@ def health_check():
     return {"status": "ok", "pipeline_loaded": "retriever" in retriever_holder}
 
 
-@app.post("/query", response_model=QueryResponse)
+@app.post("/query")
 def query(request: QueryRequest):
     if retriever_holder["retriever"] is None:
          print("Loading RAG pipeline...")
@@ -90,29 +99,69 @@ def query(request: QueryRequest):
         raise HTTPException(status_code=400, detail="Question cannot be empty.")
 
     retriever = retriever_holder["retriever"]
-    chunks = retriever.retrieve_and_rerank(request.question)
+    recent_user_questions = [
+        message.content
+        for message in request.history[-6:]
+        if message.role == "user"
+    ]
+    retrieval_query = "\n".join([*recent_user_questions, request.question])
+    chunks = retriever.retrieve_and_rerank(retrieval_query)
 
     if not chunks:
-        return QueryResponse(answer="No relevant information found for this question.", citations=[])
+        def fallback_stream():
+            yield f"data: {json.dumps({'type': 'content', 'text': 'No relevant information found for this question.'})}\n\n"
+            yield f"data: {json.dumps({'type': 'citations', 'citations': []})}\n\n"
+        return StreamingResponse(
+            fallback_stream(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "X-Accel-Buffering": "no",
+            },
+        )
 
     context_block = build_context_block(chunks)
     citation_map = build_citation_map(chunks)
+
+    history_block = "\n".join(
+        f"{message.role.title()}: {message.content}"
+        for message in request.history[-6:]
+    )
+    conversation_context = (
+        f"Conversation history:\n{history_block}\n\n"
+        if history_block
+        else ""
+    )
 
     prompt = f"""{SYSTEM_PROMPT}
 
 Context:
 {context_block}
 
-Question: {request.question}
+{conversation_context}Question: {request.question}
 
 Answer (remember to cite sources using [1], [2], etc.):"""
 
-    response = llm.complete(prompt)
-    answer_text = response.text.strip()
-
     citations = [
-        Citation(number=num, title=source["title"], section=source["section"], url=source["url"])
+        {"number": num, "title": source["title"], "section": source["section"], "url": source["url"]}
         for num, source in citation_map.items()
     ]
 
-    return QueryResponse(answer=answer_text, citations=citations)
+    async def event_stream():
+        response_gen = await llm.astream_complete(prompt)
+        async for chunk in response_gen:
+            if chunk.delta:
+                yield f"data: {json.dumps({'type': 'content', 'text': chunk.delta})}\n\n"
+        
+        yield f"data: {json.dumps({'type': 'citations', 'citations': citations})}\n\n"
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
