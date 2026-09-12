@@ -1,75 +1,175 @@
 # Cloudflare Incident RAG
 
-A full-stack Retrieval-Augmented Generation (RAG) system for answering questions about Cloudflare's public incident postmortems, built end-to-end as a portfolio project.
+A friendly, full-stack Retrieval-Augmented Generation project that answers questions about Cloudflare incident reports using original public postmortems as the source of truth.
 
-Ask a question like *"How long did the January 2026 route leak incident last?"* and get a grounded, cited answer sourced directly from the original blog posts — with the system explicitly declining to answer when the corpus doesn't contain the information, rather than guessing.
+Instead of guessing, the system is designed to answer only from the retrieved context and clearly say when the information is not in the dataset.
 
-## Architecture
+## Why this project matters
 
+This project combines:
+
+- a React frontend for a clean user experience
+- a FastAPI backend for query handling and orchestration
+- Qdrant for vector search
+- hybrid retrieval for better factual precision
+- a reranker to improve result quality
+- an LLM to generate grounded answers with citations
+
+The goal is simple: help users ask factual questions like “How long did the January 2026 route leak incident last?” and get answers anchored in the actual incident documentation.
+
+## System overview
+
+```mermaid
+flowchart LR
+    A[User] --> B[React Frontend]
+    B --> C[FastAPI Backend]
+    C --> D[Hybrid Retrieval]
+    D --> E[Qdrant Vector Search]
+    D --> F[BM25 Keyword Search]
+    E --> G[Reciprocal Rank Fusion]
+    F --> G
+    G --> H[Cross-Encoder Reranker]
+    H --> I[Groq LLM]
+    I --> J[Grounded Answer + Sources]
+    J --> B
 ```
-User (React frontend)
-        |
-        v
-   FastAPI backend
-        |
-        v
-  Hybrid Retrieval  <-- Vector search (Qdrant + BGE-M3) + BM25 keyword search
-        |                fused via Reciprocal Rank Fusion (RRF)
-        v
-  Cross-Encoder Reranking  <-- BAAI/bge-reranker-v2-m3, re-scores top candidates
-        |
-        v
-  LLM Answer Generation  <-- Groq (Llama 3.3), strict citation-only prompting
-        |
-        v
-  Answer + Sources returned to the user
+
+## How the pipeline works
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant API
+    participant Retrieval
+    participant Reranker
+    participant LLM
+
+    User->>Frontend: Ask a question
+    Frontend->>API: Send query
+    API->>Retrieval: Search incident corpus
+    Retrieval-->>API: Relevant chunks
+    API->>Reranker: Re-score top candidates
+    Reranker-->>API: Better-ranked context
+    API->>LLM: Answer using retrieved evidence only
+    LLM-->>API: Final answer with citations
+    API-->>Frontend: Response + source references
+    Frontend-->>User: Display answer
 ```
 
-## Pipeline phases
+## Project pipeline
 
-| Phase | What it does |
-|---|---|
-| 1. Project setup | FastAPI backend, React frontend, Docker Compose orchestration |
-| 2. Data ingestion | Scrapes 20 Cloudflare incident postmortems via `trafilatura`, saves as markdown with YAML front matter |
-| 3. Recursive chunking | Splits documents by heading structure first, then by paragraph if a section is still oversized, with metadata (title, URL, section heading) attached to every chunk |
-| 4. Embedding generation | BGE-M3 dense embeddings (1024-dim) for every chunk |
-| 5. Vector storage | Chunks + embeddings stored in Qdrant with cosine similarity |
-| 6. Hybrid retrieval | Combines vector search and BM25 keyword search via Reciprocal Rank Fusion, so precise figures/numbers aren't lost to embedding compression |
-| 7. Reranking | Cross-encoder (`bge-reranker-v2-m3`) re-scores the top candidates by reading the query and each chunk together, correcting ordering mistakes from the faster retrieval stage |
-| 8. Answer generation | Groq-hosted Llama 3.3, prompted to answer only from retrieved context, cite every claim, and explicitly decline when context is insufficient |
-| 9. Evaluation | Ragas metrics (faithfulness, answer relevancy, context precision/recall, answer correctness) against a manually-reviewed eval set, plus a custom refusal-accuracy check on deliberately unanswerable questions |
-| 10. Tracing | LangSmith traces every pipeline stage per-request for debugging |
-| 11. Deployment | Dockerized backend (FastAPI, CPU inference) + frontend (React, served via nginx) + Qdrant, orchestrated with Docker Compose |
+1. Data ingestion
+   - Collects public Cloudflare incident postmortems
+   - Saves cleaned markdown documents with metadata
+
+2. Recursive chunking
+   - Splits content by section headings first
+   - Further splits long sections into smaller chunks
+   - Preserves title, URL, and section context
+
+3. Embedding generation
+   - Uses BAAI/bge-m3 embeddings for semantic retrieval
+
+4. Vector storage
+   - Stores chunk embeddings in Qdrant
+   - Enables similarity-based retrieval
+
+5. Hybrid retrieval
+   - Combines vector search and BM25 keyword search
+   - Fuses them using Reciprocal Rank Fusion (RRF)
+
+6. Reranking
+   - Re-scores the best matches with a cross-encoder
+   - Improves precision and ordering of results
+
+7. Answer generation
+   - Uses Groq-hosted Llama 3.3
+   - Answers only from the retrieved context
+   - Cites claims and declines when context is missing
+
+8. Evaluation
+   - Checks factuality, relevance, and refusal quality
+   - Uses Ragas and custom unanswerable-question tests
+
+9. Deployment
+   - Docker Compose orchestrates backend, frontend, and Qdrant
 
 ## Tech stack
 
-- **Backend:** FastAPI, Python
-- **Frontend:** React (Vite)
-- **Vector DB:** Qdrant
-- **Embeddings:** BAAI/bge-m3
-- **Reranker:** BAAI/bge-reranker-v2-m3
-- **LLM:** Groq (Llama 3.3 70B)
-- **Evaluation:** Ragas
-- **Tracing:** LangSmith
-- **Orchestration:** Docker Compose
+- Frontend: React + Vite
+- Backend: FastAPI + Python
+- Vector database: Qdrant
+- Dense embeddings: BAAI/bge-m3
+- Reranker: BAAI/bge-reranker-v2-m3
+- LLM: Groq (Llama 3.3 70B)
+- Evaluation: Ragas
+- Observability: LangSmith
+- Deployment: Docker Compose
 
-## Running with Docker (recommended)
+## Features
 
-1. Clone the repo
-2. Copy `backend/.env.example` to `backend/.env` and fill in your API keys (Groq, LangSmith)
-3. Make sure `backend/data/` contains the pipeline outputs (`chunks/`, `embeddings/`) — see "Regenerating the pipeline" below if starting from scratch
-4. From the project root:
-   ```bash
-   docker compose up --build
-   ```
-5. Once all three containers are up:
-   - Frontend: http://localhost:3000
-   - Backend API docs: http://localhost:8000/docs
-   - Qdrant dashboard: http://localhost:6333/dashboard
+- Search across Cloudflare incident postmortems
+- Hybrid retrieval using both semantic and keyword matching
+- Reranking for more accurate context selection
+- Grounded answers with citations to source material
+- Safe refusal behavior when the answer is not in the corpus
+- Docker-based local setup for easy running
 
-## Regenerating the pipeline from scratch
+## Quick start with Docker
 
-If you don't have `backend/data/` populated yet, run these in order from inside `backend/` (with a Python virtual environment activated and Qdrant running):
+1. Clone the repository
+2. Create the environment file:
+
+```bash
+cp backend/.env.example backend/.env
+```
+
+3. Fill in your API keys and environment variables for Groq and LangSmith
+4. Start the stack:
+
+```bash
+docker compose up --build
+```
+
+5. Open these in your browser after startup:
+
+- Frontend: http://localhost:3000
+- Backend docs: http://localhost:8000/docs
+- Qdrant dashboard: http://localhost:6333/dashboard
+
+## Local development
+
+### Backend
+
+```bash
+cd backend
+python -m venv venv
+# Windows
+.\venv\Scripts\Activate.ps1
+# macOS / Linux
+# source venv/bin/activate
+pip install -r requirements.txt
+uvicorn app:app --reload --port 8000
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+### Qdrant
+
+```bash
+docker run -d --name qdrant-rag -p 6333:6333 -p 6334:6334 -v "${PWD}/qdrant_storage:/qdrant/storage" qdrant/qdrant
+```
+
+## Regenerate the pipeline from scratch
+
+If the data folder is not yet populated, run the following from inside the backend directory:
 
 ```bash
 python ingest_cloudflare_incidents.py
@@ -79,52 +179,92 @@ python generate_embeddings.py
 python upload_to_qdrant.py
 ```
 
-Then either run `uvicorn app:app --reload --port 8000` directly, or rebuild the Docker image so it picks up the new `data/` folder.
+After that, you can run the API with:
 
-## Running for local development (without Docker)
-
-**Backend:**
 ```bash
-cd backend
-python -m venv venv
-.\venv\Scripts\Activate.ps1   # Windows; use source venv/bin/activate on Mac/Linux
-pip install -r ../requirements.txt
 uvicorn app:app --reload --port 8000
 ```
 
-**Frontend:**
-```bash
-cd frontend
-npm install
-npm run dev
-```
+## Project structure
 
-**Qdrant:**
-```bash
-docker run -d --name qdrant-rag -p 6333:6333 -p 6334:6334 -v "${PWD}/qdrant_storage:/qdrant/storage" qdrant/qdrant
+```text
+Rag_Cloudflare/
+├── backend/
+│   ├── app.py
+│   ├── generate_answer.py
+│   ├── hybrid_retrieval.py
+│   ├── reranking.py
+│   ├── ingest_cloudflare_incidents.py
+│   ├── chunk_documents_llamaindex.py
+│   ├── generate_embeddings.py
+│   ├── upload_to_qdrant.py
+│   ├── data/
+│   │   ├── raw/
+│   │   ├── chunks/
+│   │   ├── embeddings/
+│   │   └── eval/
+│   └── requirements.txt
+├── frontend/
+│   ├── src/
+│   ├── public/
+│   ├── package.json
+│   └── vite.config.js
+├── qdrant_storage/
+├── docker-compose.yml
+├── Dockerfile.backend
+├── Dockerfile.frontend
+├── README.md
+└── .gitignore
 ```
 
 ## Evaluation results
 
-Evaluated against a 27-question manually-reviewed factual eval set plus 5 deliberately unanswerable questions, using Ragas.
+The project was evaluated on a manually reviewed set of factual questions and a separate set of deliberately unanswerable questions.
 
-**Refusal accuracy (unanswerable questions):** 5/5 (100%) — the system correctly declined to answer every out-of-scope question rather than hallucinating.
+### Refusal accuracy
 
-**Ragas metrics (factual questions):**
+- 5 out of 5 unanswerable questions were correctly refused
+- This helps reduce hallucinations when the corpus does not contain the needed fact
 
-| Metric | Score |
+### Ragas metrics
+
+| Metric | Status |
 |---|---|
-| Faithfulness | _pending final run_ |
-| Answer Relevancy | _pending final run_ |
-| Context Precision | _pending final run_ |
-| Context Recall | _pending final run_ |
-| Answer Correctness | _pending final run_ |
+| Faithfulness | pending final run |
+| Answer Relevancy | pending final run |
+| Context Precision | pending final run |
+| Context Recall | pending final run |
+| Answer Correctness | pending final run |
 
-_Full per-question results available in `backend/data/eval/ragas_results.csv`._
+Full results are available in `backend/data/eval/ragas_results.csv`.
 
-## Key design decisions
+## Design decisions
 
-- **Hybrid retrieval over pure vector search:** Dense embeddings compress entire chunks into a single vector, which can blur precise figures (exact numbers, dates, IDs). BM25 keyword search acts as a safety net for exact-term matches, fused with vector results via Reciprocal Rank Fusion.
-- **Reranking as a correction step:** Retrieval alone sometimes ranks the most relevant chunk below less-relevant ones (verified empirically during development — see project notes). A cross-encoder reranker, which reads the query and chunk together rather than comparing precomputed vectors, corrects this.
-- **Explicit refusal over confident guessing:** The generation prompt is designed to make the LLM say "I don't know" when context is insufficient, rather than blending in outside knowledge — verified with a dedicated set of unanswerable test questions.
-- **CPU inference in the deployed container:** Development used GPU acceleration; the deployed Docker image runs on CPU for portability, since GPU passthrough in Docker adds significant setup complexity that isn't worth it for a portfolio deployment.
+### Hybrid retrieval instead of pure vector search
+
+Dense retrieval is powerful, but it can blur exact numbers, dates, and names. BM25 gives the system a strong fallback for exact matching and improves reliability on factual questions.
+
+### Reranking as a quality correction step
+
+The first retrieval stage is fast but not always perfect. The reranker rechecks the top candidates with the query and each chunk together, which improves ordering and factual precision.
+
+### Refuse to speculate
+
+This system is intentionally strict: if the evidence is missing, it says so instead of inventing an answer. That is a major strength for a production-grade knowledge assistant.
+
+### CPU-friendly deployment
+
+The project is containerized to run efficiently on CPU-based environments, making local and portfolio deployment easier without requiring GPU setup.
+
+## Example questions
+
+- How long did the January 2026 route leak incident last?
+- What caused the DNSSEC-related outage?
+- Which incidents involved cache issues or worker failures?
+- Which postmortems mention mitigation or rollback strategies?
+
+## Notes
+
+This project is built as a portfolio-ready RAG system and is meant to show how a modern retrieval pipeline can be designed, evaluated, and deployed in a realistic application.
+
+If you want, I can also prepare a second version of the README tailored specifically for GitHub showcase style, portfolio style, or enterprise documentation style.
