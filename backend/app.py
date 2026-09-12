@@ -17,6 +17,7 @@ Run with:
 """
 
 from contextlib import asynccontextmanager
+import asyncio
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException
@@ -91,50 +92,47 @@ def health_check():
 
 @app.post("/query")
 def query(request: QueryRequest):
-    if retriever_holder["retriever"] is None:
-         print("Loading RAG pipeline...")
-         retriever_holder["retriever"] = RerankingRetriever()
-
     if not request.question or not request.question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty.")
 
-    retriever = retriever_holder["retriever"]
-    recent_user_questions = [
-        message.content
-        for message in request.history[-6:]
-        if message.role == "user"
-    ]
-    retrieval_query = "\n".join([*recent_user_questions, request.question])
-    chunks = retriever.retrieve_and_rerank(retrieval_query)
+    async def event_stream():
+        yield f"data: {json.dumps({'type': 'status', 'text': 'Searching the knowledge base...'})}\n\n"
 
-    if not chunks:
-        def fallback_stream():
-            yield f"data: {json.dumps({'type': 'content', 'text': 'No relevant information found for this question.'})}\n\n"
-            yield f"data: {json.dumps({'type': 'citations', 'citations': []})}\n\n"
-        return StreamingResponse(
-            fallback_stream(),
-            media_type="text/event-stream",
-            headers={
-                "Cache-Control": "no-cache",
-                "Connection": "keep-alive",
-                "X-Accel-Buffering": "no",
-            },
+        if retriever_holder["retriever"] is None:
+            print("Loading RAG pipeline...")
+            retriever_holder["retriever"] = await asyncio.to_thread(RerankingRetriever)
+
+        retriever = retriever_holder["retriever"]
+        recent_user_questions = [
+            message.content
+            for message in request.history[-6:]
+            if message.role == "user"
+        ]
+        retrieval_query = "\n".join([*recent_user_questions, request.question])
+        chunks = await asyncio.to_thread(
+            retriever.retrieve_and_rerank,
+            retrieval_query,
         )
 
-    context_block = build_context_block(chunks)
-    citation_map = build_citation_map(chunks)
+        if not chunks:
+            yield f"data: {json.dumps({'type': 'content', 'text': 'No relevant information found for this question.'})}\n\n"
+            yield f"data: {json.dumps({'type': 'citations', 'citations': []})}\n\n"
+            return
 
-    history_block = "\n".join(
-        f"{message.role.title()}: {message.content}"
-        for message in request.history[-6:]
-    )
-    conversation_context = (
-        f"Conversation history:\n{history_block}\n\n"
-        if history_block
-        else ""
-    )
+        context_block = build_context_block(chunks)
+        citation_map = build_citation_map(chunks)
 
-    prompt = f"""{SYSTEM_PROMPT}
+        history_block = "\n".join(
+            f"{message.role.title()}: {message.content}"
+            for message in request.history[-6:]
+        )
+        conversation_context = (
+            f"Conversation history:\n{history_block}\n\n"
+            if history_block
+            else ""
+        )
+
+        prompt = f"""{SYSTEM_PROMPT}
 
 Context:
 {context_block}
@@ -143,12 +141,11 @@ Context:
 
 Answer (remember to cite sources using [1], [2], etc.):"""
 
-    citations = [
-        {"number": num, "title": source["title"], "section": source["section"], "url": source["url"]}
-        for num, source in citation_map.items()
-    ]
+        citations = [
+            {"number": num, "title": source["title"], "section": source["section"], "url": source["url"]}
+            for num, source in citation_map.items()
+        ]
 
-    async def event_stream():
         response_gen = await llm.astream_complete(prompt)
         async for chunk in response_gen:
             if chunk.delta:
