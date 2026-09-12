@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import './App.css'
 
-const API_URL = "http://127.0.0.1:8000/query"
+const API_URL = `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/query`
 
 const exampleQuestions = [
   'How long did the route leak incident last?',
@@ -54,6 +54,29 @@ function App() {
       let done = false
       let buffer = ''
 
+      async function processLines(lines) {
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue
+
+          const dataStr = line.slice(6)
+          try {
+            const parsed = JSON.parse(dataStr)
+            if (parsed.type === 'content') {
+              answerText += parsed.text
+              setAnswer(answerText)
+              // Let React paint each received token when the browser delivers
+              // several SSE events in the same network read.
+              await new Promise((resolve) => setTimeout(resolve, 0))
+            } else if (parsed.type === 'citations') {
+              citationList = parsed.citations || []
+              setCitations(citationList)
+            }
+          } catch (parseError) {
+            console.error('Error parsing SSE data', parseError)
+          }
+        }
+      }
+
       while (!done) {
         const { value, done: readerDone } = await reader.read()
         done = readerDone
@@ -62,25 +85,11 @@ function App() {
           const lines = buffer.split('\n')
           buffer = lines.pop() || ''
 
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const dataStr = line.slice(6)
-              try {
-                const parsed = JSON.parse(dataStr)
-                if (parsed.type === 'content') {
-                  answerText += parsed.text
-                  setAnswer(answerText)
-                } else if (parsed.type === 'citations') {
-                  citationList = parsed.citations || []
-                  setCitations(citationList)
-                }
-              } catch (e) {
-                console.error('Error parsing SSE data', e)
-              }
-            }
-          }
+          await processLines(lines)
         }
       }
+
+      if (buffer.trim()) await processLines(buffer.split('\n'))
 
       setConversation((previous) => [
         ...previous,
