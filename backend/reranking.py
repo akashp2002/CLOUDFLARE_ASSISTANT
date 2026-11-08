@@ -16,49 +16,48 @@ from hybrid_retrieval import HybridRetriever
 from FlagEmbedding import FlagReranker
 from langsmith import traceable
 
-RERANK_CANDIDATES = 10   # how many chunks to pull from hybrid retrieval before reranking
+RERANK_CANDIDATES = 15   # how many chunks to pull from hybrid retrieval before reranking
 FINAL_TOP_N = 3          # how many reranked chunks to keep for the LLM (Phase 8)
 
 
 class RerankingRetriever:
-    def __init__(self):
+    def __init__(self, model_name: str = "BAAI/bge-reranker-base", enabled: bool = True):
         # Reuse everything already built in Phase 6 -- BM25 index, embedding model, Qdrant connection
         self.hybrid_retriever = HybridRetriever()
+        self.enabled = enabled
 
-        print("Loading cross-encoder reranker (BAAI/bge-reranker-v2-m3)...")
-
-        # self.reranker = FlagReranker("BAAI/bge-reranker-base",use_fp16=False)
-        self.reranker = None
-        # print("Reranker ready.\n")
-        print("Reranker is skipping.\n")
-
+        if self.enabled:
+            print(f"Loading cross-encoder reranker ({model_name})...")
+            self.reranker = FlagReranker(model_name, use_fp16=False)
+            print("Cross-encoder reranker ready.\n")
+        else:
+            self.reranker = None
+            print("Cross-encoder reranker disabled (passing hybrid results directly).\n")
 
     @traceable(name="retrieve_and_rerank", run_type="chain")
     def retrieve_and_rerank(self, query: str, top_n: int = FINAL_TOP_N) -> list[dict]:
         # Step 1: get a shortlist of candidates from hybrid retrieval (fast, approximate)
-        candidates = self.hybrid_retriever.hybrid_search(query, top_k=RERANK_CANDIDATES)
+        candidates = self.hybrid_retriever.hybrid_search(query, top_k=max(RERANK_CANDIDATES, top_n))
 
-        if not candidates:
-            return []
+        if not candidates or not self.enabled or self.reranker is None:
+            return candidates[:top_n]
 
-        # # Step 2: build (query, chunk_text) pairs -- the cross-encoder scores each pair jointly
-        # pairs = [[query, c["payload"]["text"]] for c in candidates]
+        # Step 2: build (query, chunk_text) pairs -- the cross-encoder scores each pair jointly
+        pairs = [[query, c["payload"]["text"]] for c in candidates]
 
-        # # Step 3: get one relevance score per pair directly from the cross-encoder
-        # scores = self.reranker.compute_score(pairs, normalize=True)  # normalize -> scores in [0, 1]
+        # Step 3: get one relevance score per pair directly from the cross-encoder
+        scores = self.reranker.compute_score(pairs, normalize=True)  # normalize -> scores in [0, 1]
 
-        # # compute_score returns a single float (not a list) if there's only one pair -- handle both cases
-        # if isinstance(scores, float):
-        #     scores = [scores]
+        # compute_score returns a single float (not a list) if there's only one pair -- handle both cases
+        if isinstance(scores, float):
+            scores = [scores]
 
-        # # Step 4: attach the rerank score to each candidate and sort by it, best first
-        # for candidate, score in zip(candidates, scores):
-        #     candidate["rerank_score"] = score
+        # Step 4: attach the rerank score to each candidate and sort by it, best first
+        for candidate, score in zip(candidates, scores):
+            candidate["rerank_score"] = float(score)
 
-        # reranked = sorted(candidates, key=lambda c: c["rerank_score"], reverse=True)
-
-        # return reranked[:top_n]
-        return candidates[:top_n]
+        reranked = sorted(candidates, key=lambda c: c["rerank_score"], reverse=True)
+        return reranked[:top_n]
 
 
 if __name__ == "__main__":

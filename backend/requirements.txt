@@ -28,17 +28,11 @@ llama-index-llms-groq
 # Tracing
 langsmith
 
-# Evaluation (Ragas + pinned compatible langchain stack -- see project notes
-# on why these versions are pinned: newer ragas has a broken import against
-# newer langchain-community)
-ragas==0.1.21
-langchain==0.2.16
-langchain-community==0.2.16
-langchain-core==0.2.43
-langchain-groq==0.1.9
-langchain-huggingface==0.0.3
-langchain-openai==0.1.25
-datasets
+# Evaluation -- NOT needed at runtime, only for offline eval scripts.
+# Install these manually when running evaluation locally:
+#   pip install ragas==0.1.21 langchain==0.2.16 langchain-community==0.2.16 \
+#     langchain-core==0.2.43 langchain-groq==0.1.9 langchain-huggingface==0.0.3 \
+#     langchain-openai==0.1.25 datasets
 
 
 # fastapi
